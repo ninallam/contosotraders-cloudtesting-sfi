@@ -40,10 +40,12 @@ var kvName = '${prefix}kv${suffix}'
 var kvSecretNameProductsApiEndpoint = 'productsApiEndpoint'
 var kvSecretNameProductsDbConnStr = 'productsDbConnectionString'
 var kvSecretNameProfilesDbConnStr = 'profilesDbConnectionString'
-var kvSecretNameStocksDbConnStr = 'stocksDbConnectionString'
+
+var kvSecretNameStocksDbEndpoint = 'stocksDbEndpoint'
+var kvSecretNameCartsDbEndpoint = 'cartsDbEndpoint'
+
 var kvSecretNameCartsApiEndpoint = 'cartsApiEndpoint'
 var kvSecretNameCartsInternalApiEndpoint = 'cartsInternalApiEndpoint'
-var kvSecretNameCartsDbConnStr = 'cartsDbConnectionString'
 var kvSecretNameImagesEndpoint = 'imagesEndpoint'
 var kvSecretNameAppInsightsConnStr = 'appInsightsConnectionString'
 var kvSecretNameUiCdnEndpoint = 'uiCdnEndpoint'
@@ -238,13 +240,12 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
   }
 
-  // secret 
-  resource kv_secretStocksDbConnStr 'secrets' = {
-    name: kvSecretNameStocksDbConnStr
+  resource kv_secretStocksDbEndpoint 'secrets' = {
+    name: kvSecretNameStocksDbEndpoint
     tags: resourceTags
     properties: {
-      contentType: 'connection string to the stocks db'
-      value: stocksdba.listConnectionStrings().connectionStrings[0].connectionString
+      contentType: 'endpoint url (fqdn) of the stocks db'
+      value: stocksdba.properties.documentEndpoint
     }
   }
 
@@ -270,12 +271,12 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
 
   // secret
-  resource kv_secretCartsDbConnStr 'secrets' = {
-    name: kvSecretNameCartsDbConnStr
+  resource kv_secretCartsDbEndpoint 'secrets' = {
+    name: kvSecretNameCartsDbEndpoint
     tags: resourceTags
     properties: {
-      contentType: 'connection string to the carts db'
-      value: cartsdba.listConnectionStrings().connectionStrings[0].connectionString
+      contentType: 'endpoint url (fqdn) of the stocks db'
+      value: cartsdba.properties.documentEndpoint
     }
   }
 
@@ -423,6 +424,18 @@ resource stocksdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
   }
 }
 
+// Cosmos DB Document Contributor Built In Role Assignment
+var stocksCosmosDbRoleDefinitionId = '${stocksdba.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+resource stocksdbaRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: guid(userassignedmiforkvaccess.id, stocksdba.id)
+  parent: stocksdba
+  properties: {
+    principalId: userassignedmiforkvaccess.properties.principalId
+    roleDefinitionId: stocksCosmosDbRoleDefinitionId
+    scope: stocksdba.id
+  }
+}
+
 //
 // carts db
 //
@@ -474,6 +487,18 @@ resource cartsdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         }
       }
     }
+  }
+}
+
+// Cosmos DB Document Contributor Built In Role Assignment
+var cartsCosmosDbRoleDefinitionId = '${cartsdba.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+resource cartsdbaRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: guid(userassignedmiforkvaccess.id, cartsdba.id)
+  parent: cartsdba
+  properties: {
+    principalId: userassignedmiforkvaccess.properties.principalId
+    roleDefinitionId: cartsCosmosDbRoleDefinitionId
+    scope: cartsdba.id
   }
 }
 
