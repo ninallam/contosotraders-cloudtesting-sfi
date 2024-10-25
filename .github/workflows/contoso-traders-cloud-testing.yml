@@ -68,6 +68,7 @@ jobs:
           client-id: "acd1310a-2ba7-41ab-b106-a8da1dd2fe00"
           tenant-id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
           subscription-id: "b87f8077-5aab-4bfe-9f21-a7d5acea4f98"
+          auth-type: IDENTITY
       # section #0: optional configuration of the Azure AD app.
       # create the Azure AD application (and update it if it already exists).
       # note: This is an idempotent operation.
