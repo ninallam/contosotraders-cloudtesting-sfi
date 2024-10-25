@@ -67,7 +67,7 @@ jobs:
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: "b87f8077-5aab-4bfe-9f21-a7d5acea4f98"
       # section #0: optional configuration of the Azure AD app.
       # create the Azure AD application (and update it if it already exists).
       # note: This is an idempotent operation.
