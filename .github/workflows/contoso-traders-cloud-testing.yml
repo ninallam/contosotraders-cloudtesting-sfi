@@ -65,9 +65,9 @@ jobs:
       - name: azure login
         uses: azure/login@v2
         with:
-          client-id: "acd1310a-2ba7-41ab-b106-a8da1dd2fe00"
-          tenant-id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
-          subscription-id: "b87f8077-5aab-4bfe-9f21-a7d5acea4f98"
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       # section #0: optional configuration of the Azure AD app.
       # create the Azure AD application (and update it if it already exists).
       # note: This is an idempotent operation.
