@@ -15,7 +15,11 @@ internal class KeyVaultConstants
     public static readonly string SecretNameProductsDbConnectionString = "productsDbConnectionString";
 
     public static readonly string SecretNameProfilesDbConnectionString = "profilesDbConnectionString";
-    
+
+    // AAD conn strings have Authentication=Active Directory Default set in them instead of User ID=<userid>;Password=<password>;
+    public static readonly string SecretNameProductsDbAADConnectionString = "productsDbAADConnectionString";
+    public static readonly string SecretNameProfilesDbAADConnectionString = "profilesDbAADConnectionString";
+
     public static readonly string SecretNameCartsDbEndpoint = "cartsDbEndpoint";
 
     public static readonly string SecretNameStocksDbEndpoint = "stocksDbEndpoint";

@@ -55,7 +55,7 @@ public class DependencyInjection : FunctionsStartup
                 new Uri(builder.Configuration["KeyVaultEndpoint"]),
                 credential);
 
-        ConfigureServicesInternal(builder.Services, builder.Configuration, credential);
+        ConfigureServicesInternal(builder.Services, builder.Configuration);
 
         ConfigureAspNetCoreServices(builder.Services, builder.Configuration);
 
@@ -70,7 +70,7 @@ public class DependencyInjection : FunctionsStartup
     /// <remarks>
     ///     @TODO: Currently, this method is very 'aspnetcore' specific. Make it more generic (for azure functions) later.
     /// </remarks>
-    private static void ConfigureServicesInternal(IServiceCollection services, IConfiguration configuration, DefaultAzureCredential credential)
+    private static void ConfigureServicesInternal(IServiceCollection services, IConfiguration configuration)
     {
         // injecting auto-mapper
         services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -79,11 +79,17 @@ public class DependencyInjection : FunctionsStartup
         services.AddMediatR(Assembly.GetExecutingAssembly());
 
         // inject ef-core dbcontexts (after fetching connection string from azure keyvault).
-        var productsDbConnectionString = configuration[KeyVaultConstants.SecretNameProductsDbConnectionString];
+        var productsDbConnectionString = configuration[KeyVaultConstants.SecretNameProductsDbAADConnectionString];
         services.AddDbContext<ProductsDbContext>(options => options.UseSqlServer(productsDbConnectionString));
 
-        var profilesDbConnectionString = configuration[KeyVaultConstants.SecretNameProfilesDbConnectionString];
+        var profilesDbConnectionString = configuration[KeyVaultConstants.SecretNameProfilesDbAADConnectionString];
         services.AddDbContext<ProfilesDbContext>(options => options.UseSqlServer(profilesDbConnectionString));
+
+        var credential = new DefaultAzureCredential(
+                new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = configuration["ManagedIdentityClientId"]
+                });
 
         // injecting the cosmosdb clients
         var stocksDbEndpoint = configuration[KeyVaultConstants.SecretNameStocksDbEndpoint];
