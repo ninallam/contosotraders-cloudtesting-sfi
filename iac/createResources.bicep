@@ -253,7 +253,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 
   resource kv_secretProfilesDbAadConnStr 'secrets' = {
-    name: kvSecretNameProfilesDbConnStr
+    name: kvSecretNameProfilesDbAadConnStr
     tags: resourceTags
     properties: {
       contentType: 'connection string to the profiles db using AAD'
