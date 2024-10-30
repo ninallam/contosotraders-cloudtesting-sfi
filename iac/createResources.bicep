@@ -413,6 +413,7 @@ resource stocksdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         locationName: resourceLocation
       }
     ]
+    disableLocalAuth: true
   }
 
   // cosmos db database
@@ -479,6 +480,7 @@ resource cartsdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         locationName: resourceLocation
       }
     ]
+    disableLocalAuth: true
   }
 
   // cosmos db database
