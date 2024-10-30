@@ -40,6 +40,8 @@ var kvName = '${prefix}kv${suffix}'
 var kvSecretNameProductsApiEndpoint = 'productsApiEndpoint'
 var kvSecretNameProductsDbConnStr = 'productsDbConnectionString'
 var kvSecretNameProfilesDbConnStr = 'profilesDbConnectionString'
+var kvSecretNameProductsDbAadConnStr = 'productsDbAADConnectionString'
+var kvSecretNameProfilesDbAadConnStr = 'profilesDbAADConnectionString'
 
 var kvSecretNameStocksDbEndpoint = 'stocksDbEndpoint'
 var kvSecretNameCartsDbEndpoint = 'cartsDbEndpoint'
@@ -231,12 +233,31 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 
   // secret 
+  resource kv_secretProductsDbAadConnStr 'secrets' = {
+    name: kvSecretNameProductsDbAadConnStr
+    tags: resourceTags
+    properties: {
+      contentType: 'connection string to the products db using AAD'
+      value: 'Server=tcp:${productsDbServerName}${sqlServerHostName},1433;Initial Catalog=${productsDbName};Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default'
+    }
+  }
+
+  // secret 
   resource kv_secretProfilesDbConnStr 'secrets' = {
     name: kvSecretNameProfilesDbConnStr
     tags: resourceTags
     properties: {
       contentType: 'connection string to the profiles db'
       value: 'Server=tcp:${profilesDbServerName}${sqlServerHostName},1433;Initial Catalog=${profilesDbName};Persist Security Info=False;User ID=${profilesDbServerAdminLogin};Password=${profilesDbServerAdminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+    }
+  }
+
+  resource kv_secretProfilesDbAadConnStr 'secrets' = {
+    name: kvSecretNameProfilesDbConnStr
+    tags: resourceTags
+    properties: {
+      contentType: 'connection string to the profiles db using AAD'
+      value: 'Server=tcp:${profilesDbServerName}${sqlServerHostName},1433;Initial Catalog=${profilesDbName};Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default'
     }
   }
 
@@ -749,6 +770,7 @@ resource productimagesstgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
   // blob service
   resource productimagesstgacc_blobsvc 'blobServices' = {
@@ -788,6 +810,7 @@ resource uistgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
   // blob service
   resource uistgacc_blobsvc 'blobServices' = {
@@ -862,6 +885,7 @@ resource ui2stgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
 
   // blob service
@@ -941,6 +965,7 @@ resource imageclassifierstgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = 
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
 
   // blob service
