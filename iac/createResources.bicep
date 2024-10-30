@@ -585,8 +585,14 @@ resource productsdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   location: resourceLocation
   tags: resourceTags
   properties: {
-    administratorLogin: productsDbServerAdminLogin
-    administratorLoginPassword: productsDbServerAdminPassword
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      principalType: 'Group'
+      login: 'Cloud Native Testing Developers'
+      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      tenantId: subscription().tenantId
+      azureADOnlyAuthentication: true
+    }
     publicNetworkAccess: 'Enabled'
   }
 
@@ -631,8 +637,14 @@ resource profilesdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   location: resourceLocation
   tags: resourceTags
   properties: {
-    administratorLogin: profilesDbServerAdminLogin
-    administratorLoginPassword: profilesDbServerAdminPassword
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      principalType: 'Group'
+      login: 'Cloud Native Testing Developers'
+      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      tenantId: subscription().tenantId
+      azureADOnlyAuthentication: true
+    }
     publicNetworkAccess: 'Enabled'
   }
 
