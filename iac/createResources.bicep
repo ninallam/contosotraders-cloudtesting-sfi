@@ -40,10 +40,14 @@ var kvName = '${prefix}kv${suffix}'
 var kvSecretNameProductsApiEndpoint = 'productsApiEndpoint'
 var kvSecretNameProductsDbConnStr = 'productsDbConnectionString'
 var kvSecretNameProfilesDbConnStr = 'profilesDbConnectionString'
-var kvSecretNameStocksDbConnStr = 'stocksDbConnectionString'
+var kvSecretNameProductsDbAadConnStr = 'productsDbAADConnectionString'
+var kvSecretNameProfilesDbAadConnStr = 'profilesDbAADConnectionString'
+
+var kvSecretNameStocksDbEndpoint = 'stocksDbEndpoint'
+var kvSecretNameCartsDbEndpoint = 'cartsDbEndpoint'
+
 var kvSecretNameCartsApiEndpoint = 'cartsApiEndpoint'
 var kvSecretNameCartsInternalApiEndpoint = 'cartsInternalApiEndpoint'
-var kvSecretNameCartsDbConnStr = 'cartsDbConnectionString'
 var kvSecretNameImagesEndpoint = 'imagesEndpoint'
 var kvSecretNameAppInsightsConnStr = 'appInsightsConnectionString'
 var kvSecretNameUiCdnEndpoint = 'uiCdnEndpoint'
@@ -229,6 +233,16 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 
   // secret 
+  resource kv_secretProductsDbAadConnStr 'secrets' = {
+    name: kvSecretNameProductsDbAadConnStr
+    tags: resourceTags
+    properties: {
+      contentType: 'connection string to the products db using AAD'
+      value: 'Server=tcp:${productsDbServerName}${sqlServerHostName},1433;Initial Catalog=${productsDbName};Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default'
+    }
+  }
+
+  // secret 
   resource kv_secretProfilesDbConnStr 'secrets' = {
     name: kvSecretNameProfilesDbConnStr
     tags: resourceTags
@@ -238,13 +252,21 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
   }
 
-  // secret 
-  resource kv_secretStocksDbConnStr 'secrets' = {
-    name: kvSecretNameStocksDbConnStr
+  resource kv_secretProfilesDbAadConnStr 'secrets' = {
+    name: kvSecretNameProfilesDbAadConnStr
     tags: resourceTags
     properties: {
-      contentType: 'connection string to the stocks db'
-      value: stocksdba.listConnectionStrings().connectionStrings[0].connectionString
+      contentType: 'connection string to the profiles db using AAD'
+      value: 'Server=tcp:${profilesDbServerName}${sqlServerHostName},1433;Initial Catalog=${profilesDbName};Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default'
+    }
+  }
+
+  resource kv_secretStocksDbEndpoint 'secrets' = {
+    name: kvSecretNameStocksDbEndpoint
+    tags: resourceTags
+    properties: {
+      contentType: 'endpoint url (fqdn) of the stocks db'
+      value: stocksdba.properties.documentEndpoint
     }
   }
 
@@ -270,12 +292,12 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
     }
 
   // secret
-  resource kv_secretCartsDbConnStr 'secrets' = {
-    name: kvSecretNameCartsDbConnStr
+  resource kv_secretCartsDbEndpoint 'secrets' = {
+    name: kvSecretNameCartsDbEndpoint
     tags: resourceTags
     properties: {
-      contentType: 'connection string to the carts db'
-      value: cartsdba.listConnectionStrings().connectionStrings[0].connectionString
+      contentType: 'endpoint url (fqdn) of the stocks db'
+      value: cartsdba.properties.documentEndpoint
     }
   }
 
@@ -391,6 +413,7 @@ resource stocksdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         locationName: resourceLocation
       }
     ]
+    disableLocalAuth: true
   }
 
   // cosmos db database
@@ -423,6 +446,18 @@ resource stocksdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
   }
 }
 
+// Cosmos DB Document Contributor Built In Role Assignment
+var stocksCosmosDbRoleDefinitionId = '${stocksdba.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+resource stocksdbaRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: guid(userassignedmiforkvaccess.id, stocksdba.id)
+  parent: stocksdba
+  properties: {
+    principalId: userassignedmiforkvaccess.properties.principalId
+    roleDefinitionId: stocksCosmosDbRoleDefinitionId
+    scope: stocksdba.id
+  }
+}
+
 //
 // carts db
 //
@@ -445,6 +480,7 @@ resource cartsdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         locationName: resourceLocation
       }
     ]
+    disableLocalAuth: true
   }
 
   // cosmos db database
@@ -474,6 +510,18 @@ resource cartsdba 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         }
       }
     }
+  }
+}
+
+// Cosmos DB Document Contributor Built In Role Assignment
+var cartsCosmosDbRoleDefinitionId = '${cartsdba.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+resource cartsdbaRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: guid(userassignedmiforkvaccess.id, cartsdba.id)
+  parent: cartsdba
+  properties: {
+    principalId: userassignedmiforkvaccess.properties.principalId
+    roleDefinitionId: cartsCosmosDbRoleDefinitionId
+    scope: cartsdba.id
   }
 }
 
@@ -537,8 +585,14 @@ resource productsdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   location: resourceLocation
   tags: resourceTags
   properties: {
-    administratorLogin: productsDbServerAdminLogin
-    administratorLoginPassword: productsDbServerAdminPassword
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      principalType: 'Group'
+      login: 'Cloud Native Testing Developers'
+      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      tenantId: subscription().tenantId
+      azureADOnlyAuthentication: true
+    }
     publicNetworkAccess: 'Enabled'
   }
 
@@ -583,8 +637,14 @@ resource profilesdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   location: resourceLocation
   tags: resourceTags
   properties: {
-    administratorLogin: profilesDbServerAdminLogin
-    administratorLoginPassword: profilesDbServerAdminPassword
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      principalType: 'Group'
+      login: 'Cloud Native Testing Developers'
+      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      tenantId: subscription().tenantId
+      azureADOnlyAuthentication: true
+    }
     publicNetworkAccess: 'Enabled'
   }
 
@@ -724,6 +784,7 @@ resource productimagesstgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
   // blob service
   resource productimagesstgacc_blobsvc 'blobServices' = {
@@ -763,6 +824,7 @@ resource uistgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
   // blob service
   resource uistgacc_blobsvc 'blobServices' = {
@@ -837,6 +899,7 @@ resource ui2stgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
 
   // blob service
@@ -916,6 +979,7 @@ resource imageclassifierstgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = 
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
+    allowSharedKeyAccess: false
   }
 
   // blob service

@@ -38,18 +38,22 @@ public class DependencyInjection : FunctionsStartup
     {
         var builder = WebApplication.CreateBuilder();
 
+        var credential = builder.Environment.IsDevelopment() ?
+            new DefaultAzureCredential() :
+            new DefaultAzureCredential(
+                new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = builder.Configuration["ManagedIdentityClientId"]
+                });
+
         if (builder.Environment.IsDevelopment())
             builder.Configuration.AddAzureKeyVault(
                 new Uri(builder.Configuration["KeyVaultEndpoint"]),
-                new DefaultAzureCredential());
+                credential);
         else
             builder.Configuration.AddAzureKeyVault(
                 new Uri(builder.Configuration["KeyVaultEndpoint"]),
-                new DefaultAzureCredential(
-                    new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = builder.Configuration["ManagedIdentityClientId"]
-                    }));
+                credential);
 
         ConfigureServicesInternal(builder.Services, builder.Configuration);
 
@@ -75,18 +79,24 @@ public class DependencyInjection : FunctionsStartup
         services.AddMediatR(Assembly.GetExecutingAssembly());
 
         // inject ef-core dbcontexts (after fetching connection string from azure keyvault).
-        var productsDbConnectionString = configuration[KeyVaultConstants.SecretNameProductsDbConnectionString];
+        var productsDbConnectionString = configuration[KeyVaultConstants.SecretNameProductsDbAADConnectionString];
         services.AddDbContext<ProductsDbContext>(options => options.UseSqlServer(productsDbConnectionString));
 
-        var profilesDbConnectionString = configuration[KeyVaultConstants.SecretNameProfilesDbConnectionString];
+        var profilesDbConnectionString = configuration[KeyVaultConstants.SecretNameProfilesDbAADConnectionString];
         services.AddDbContext<ProfilesDbContext>(options => options.UseSqlServer(profilesDbConnectionString));
 
-        // injecting the cosmosdb clients
-        var stocksDbConnectionString = configuration[KeyVaultConstants.SecretNameStocksDbConnectionString];
-        services.AddSingleton(_ => new CosmosClient(stocksDbConnectionString).GetDatabase(CosmosConstants.DatabaseNameStocks));
+        var credential = new DefaultAzureCredential(
+                new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = configuration["ManagedIdentityClientId"]
+                });
 
-        var cartsDbConnectionString = configuration[KeyVaultConstants.SecretNameCartsDbConnectionString];
-        services.AddSingleton(_ => new CosmosClient(cartsDbConnectionString).GetDatabase(CosmosConstants.DatabaseNameCarts));
+        // injecting the cosmosdb clients
+        var stocksDbEndpoint = configuration[KeyVaultConstants.SecretNameStocksDbEndpoint];
+        services.AddSingleton(_ => new CosmosClient(stocksDbEndpoint, credential).GetDatabase(CosmosConstants.DatabaseNameStocks));
+
+        var cartsDbEndpoint = configuration[KeyVaultConstants.SecretNameCartsDbEndpoint];
+        services.AddSingleton(_ => new CosmosClient(cartsDbEndpoint, credential).GetDatabase(CosmosConstants.DatabaseNameCarts));
 
         // inject services
         services
