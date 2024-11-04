@@ -229,6 +229,7 @@ stages:
             displayName: seed products db
           - task: AzureCLI@1
             displayName: seed product image (product details)
+            condition: false
             inputs:
               azureSubscription: SERVICEPRINCIPAL
               scriptLocation: inlineScript
