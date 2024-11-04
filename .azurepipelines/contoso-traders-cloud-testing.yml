@@ -221,7 +221,7 @@ stages:
                   --identities $(az identity show -g $(RESOURCE_GROUP_NAME)$(SUFFIX) --name $(USER_ASSIGNED_MANAGED_IDENTITY_NAME)$(SUFFIX) --query "id" -o tsv) \
                   --ids $(az vmss list -g $(AKS_NODES_RESOURCE_GROUP_NAME)$(SUFFIX) --query "[0].id" -o tsv) \
           # Seed the DBs and storage accounts
-          - uses: azure/sql-action@v2.3
+          - uses: azure/sql-action@v1
             with:
               connection-string: 'Server=tcp:$(PRODUCTS_DB_SERVER_NAME)$(SUFFIX).database.windows.net, 1433;Initial Catalog=$(PRODUCTS_DB_NAME);Persist Security Info=False;User ID=$(PRODUCTS_DB_USER_NAME);Password=$(SQLPASSWORD);MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
               path: './src/ContosoTraders.Api.Products/Migration/productsdb.sql'
