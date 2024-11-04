@@ -824,7 +824,7 @@ resource uistgacc 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     allowBlobPublicAccess: true
-    allowSharedKeyAccess: false
+    allowSharedKeyAccess: true // This will be disabled via enable-static-website
   }
   // blob service
   resource uistgacc_blobsvc 'blobServices' = {
