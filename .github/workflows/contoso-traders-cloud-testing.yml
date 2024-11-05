@@ -175,15 +175,15 @@ jobs:
               --ids $(az vmss list -g ${{ env.AKS_NODES_RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --query "[0].id" -o tsv) \
       - name: Replace placeholders in the sql script
         run: |
-          sed -i 's/APP_MSI_OBJECT_ID_PLACEHOLDER/'"${{ steps.resourceDeployment.outputs.appMsiObjectId }}"'/g' ./src/ContosoTraders.Api.Products/Migration/productsdbusers.sql
-          cat ./src/ContosoTraders.Api.Products/Migration/productsdbusers.sql
+          sed -i 's/APP_MSI_OBJECT_ID_PLACEHOLDER/'"${{ steps.resourceDeployment.outputs.appMsiObjectId }}"'/g' ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
+          cat ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
       # Add the application as database readers
-      - name: add application login
-        uses: azure/sql-action@v2.3
-        with:
-          connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=master;Persist Security Info=False;Authentication=Active Directory Default;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
-          path: ./src/ContosoTraders.Api.Products/Migration/productsdbusers.sql
-          skip-firewall-check: true
+      # - name: add application login
+      #   uses: azure/sql-action@v2.3
+      #   with:
+      #     connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=master;Persist Security Info=False;Authentication=Active Directory Default;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
+      #     path: ./src/ContosoTraders.Api.Products/Migration/productsdbusers.sql
+      #     skip-firewall-check: true
       # Seed the DBs and storage accounts
       - name: seed products db
         uses: azure/sql-action@v2.3
