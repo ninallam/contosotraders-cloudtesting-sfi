@@ -32,6 +32,8 @@ param sqlServerHostName string = environment().suffixes.sqlServerHostname
 // use param to conditionally deploy private endpoint resources
 param deployPrivateEndpoints bool = false
 
+param deploymentIdentityObjectId string = ''
+
 // variables
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -587,9 +589,9 @@ resource productsdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   properties: {
     administrators: {
       administratorType: 'ActiveDirectory'
-      principalType: 'Group'
-      login: 'Cloud Native Testing Developers'
-      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      principalType: 'Application'
+      login: 'contoso-traders-gh'
+      sid: deploymentIdentityObjectId
       tenantId: subscription().tenantId
       azureADOnlyAuthentication: true
     }

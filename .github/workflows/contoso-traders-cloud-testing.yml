@@ -158,7 +158,7 @@ jobs:
           region: ${{ vars.DEPLOYMENTREGION }}
           resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }}
           template: ./iac/createResources.bicep
-          parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }}
+          parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }} deploymentIdentityObjectId=${{ secrets.AZURE_CLIENT_ID }}
       # Add the logged-in service principal to the key vault access policy
       - name: add service principal to kv access policy
         uses: azure/CLI@v1
@@ -173,12 +173,12 @@ jobs:
               --identities $(az identity show -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --name ${{ env.USER_ASSIGNED_MANAGED_IDENTITY_NAME }}${{ vars.SUFFIX }} --query "id" -o tsv) \
               --ids $(az vmss list -g ${{ env.AKS_NODES_RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --query "[0].id" -o tsv) \
       # Seed the DBs and storage accounts
-      # - name: seed products db
-      #   uses: azure/sql-action@v2.3
-      #   with:
-      #     connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=${{ env.PRODUCTS_DB_NAME }};Persist Security Info=False;User ID=${{ env.PRODUCTS_DB_USER_NAME }};Password=${{ secrets.SQLPASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
-      #     path: ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
-      #     skip-firewall-check: true
+      - name: seed products db
+        uses: azure/sql-action@v2.3
+        with:
+          connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=${{ env.PRODUCTS_DB_NAME }};Persist Security Info=False;User ID=${{ env.PRODUCTS_DB_USER_NAME }};Password=${{ secrets.SQLPASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
+          path: ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
+          skip-firewall-check: true
       # - name: seed product image (product details)
       #   uses: azure/CLI@v1
       #   with:
