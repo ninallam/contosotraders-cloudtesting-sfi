@@ -151,15 +151,15 @@ jobs:
       # You can modify the parameters to customize the deployment.
       # Note: The bicep template outputs are not shown in the logs. You can extract the outputs as shown here:
       # https://github.com/Azure/arm-deploy#another-example-on-how-to-use-this-action-to-get-the-output-of-arm-template
-      - name: create resources
-        id: resourceDeployment
-        uses: Azure/arm-deploy@v1
-        with:
-          scope: resourcegroup
-          region: ${{ vars.DEPLOYMENTREGION }}
-          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }}
-          template: ./iac/createResources.bicep
-          parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }}
+      # - name: create resources
+      #   id: resourceDeployment
+      #   uses: Azure/arm-deploy@v1
+      #   with:
+      #     scope: resourcegroup
+      #     region: ${{ vars.DEPLOYMENTREGION }}
+      #     resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }}
+      #     template: ./iac/createResources.bicep
+      #     parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }}
       # Add the logged-in service principal to the key vault access policy
       - name: add service principal to kv access policy
         uses: azure/CLI@v1
