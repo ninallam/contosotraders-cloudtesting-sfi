@@ -178,6 +178,7 @@ jobs:
         with:
           connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=${{ env.PRODUCTS_DB_NAME }};Persist Security Info=False;User ID=${{ env.PRODUCTS_DB_USER_NAME }};Password=${{ secrets.SQLPASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
           path: ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
+          skip-firewall-check: true
       - name: seed product image (product details)
         uses: azure/CLI@v1
         with:
