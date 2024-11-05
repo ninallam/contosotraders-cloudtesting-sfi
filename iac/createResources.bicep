@@ -32,8 +32,6 @@ param sqlServerHostName string = environment().suffixes.sqlServerHostname
 // use param to conditionally deploy private endpoint resources
 param deployPrivateEndpoints bool = false
 
-param deploymentIdentityObjectId string = ''
-
 // variables
 ////////////////////////////////////////////////////////////////////////////////
 
