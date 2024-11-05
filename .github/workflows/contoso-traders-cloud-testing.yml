@@ -175,7 +175,7 @@ jobs:
               --ids $(az vmss list -g ${{ env.AKS_NODES_RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --query "[0].id" -o tsv) \
       - name: Replace placeholders in the sql script
         run: |
-          sed -i 's/APP_MSI_OBJECT_ID_PLACEHOLDER/'"${{ steps.resourceDeployment.outputs.properties.outputs.appMsiObjectId.value }}"'/g' ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
+          sed -i 's/APP_MSI_OBJECT_ID_PLACEHOLDER/'"${{ steps.resourceDeployment.outputs.appMsiObjectId }}"'/g' ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
           cat ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
       # Seed the DBs and storage accounts
       - name: seed products db
