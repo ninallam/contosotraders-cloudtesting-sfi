@@ -7,7 +7,7 @@ $AccessToken = $AccessTokenOutput.Token
 
 $conn = new-object System.Data.SqlClient.SqlConnection;
 $conn.ConnectionString = "Server=tcp:$SQLServerFQN,1433;Initial Catalog=$SQLDbName;Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"; 
-$conn.AccessToken = $(AccessToken); 
+$conn.AccessToken = $AccessToken; 
 $conn.Open();
 $SqlCmd = New-Object System.Data.SqlClient.SqlCommand;
 # Copied from productsdb.sql
