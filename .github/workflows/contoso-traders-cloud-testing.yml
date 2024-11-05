@@ -152,6 +152,7 @@ jobs:
       # Note: The bicep template outputs are not shown in the logs. You can extract the outputs as shown here:
       # https://github.com/Azure/arm-deploy#another-example-on-how-to-use-this-action-to-get-the-output-of-arm-template
       - name: create resources
+        id: resourceDeployment
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
@@ -172,6 +173,10 @@ jobs:
             az vmss identity assign \
               --identities $(az identity show -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --name ${{ env.USER_ASSIGNED_MANAGED_IDENTITY_NAME }}${{ vars.SUFFIX }} --query "id" -o tsv) \
               --ids $(az vmss list -g ${{ env.AKS_NODES_RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --query "[0].id" -o tsv) \
+      - name: Replace placeholders in the sql script
+        run: |
+          sed -i 's/\${{ secrets.APP_MSI_OBJECT_ID }}/'"${{ steps.resourceDeployment.outputs.properties.outputs.appMsiObjectId.value }}"'/g' ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
+          cat ./src/ContosoTraders.Api.Products/Migration/productsdb.sql
       # Seed the DBs and storage accounts
       - name: seed products db
         uses: azure/sql-action@v2.3

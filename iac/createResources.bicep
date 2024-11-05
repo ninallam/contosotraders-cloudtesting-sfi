@@ -1825,3 +1825,4 @@ resource chaosaksexperiment 'Microsoft.Chaos/experiments@2022-10-01-preview' = {
 
 output cartsApiEndpoint string = 'https://${cartsapiaca.properties.configuration.ingress.fqdn}'
 output uiCdnEndpoint string = 'https://${cdnprofile_ui2endpoint.properties.hostName}'
+output appMsiObjectId string = userassignedmiforkvaccess.properties.principalId
