@@ -5,7 +5,7 @@ $SQLDbName = $env:SQLDbName
 $AccessTokenOutput = Get-AzAccessToken -ResourceUrl "https://database.windows.net/"
 $AccessToken = $AccessTokenOutput.Token
 
-$conn = netew-object System.Data.SqlClient.SqlConnection;
+$conn = new-object System.Data.SqlClient.SqlConnection;
 $conn.ConnectionString = "Server=tcp:$SQLServerFQN,1433;Initial Catalog=$SQLDbName;Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"; 
 $conn.AccessToken = $(AccessToken); 
 $conn.Open();
