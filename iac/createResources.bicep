@@ -590,8 +590,8 @@ resource productsdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       principalType: 'Application'
-      login: 'contoso-traders-gh'
-      sid: deploymentIdentityObjectId
+      login: 'contoso-traders-app'
+      sid: userassignedmiforkvaccess.properties.principalId
       tenantId: subscription().tenantId
       azureADOnlyAuthentication: true
     }
@@ -641,9 +641,9 @@ resource profilesdbsrv 'Microsoft.Sql/servers@2022-05-01-preview' = {
   properties: {
     administrators: {
       administratorType: 'ActiveDirectory'
-      principalType: 'Group'
-      login: 'Cloud Native Testing Developers'
-      sid: 'a7ccd0fd-793c-4400-8848-3e9ed3c53e4c'
+      principalType: 'Application'
+      login: 'contoso-traders-app'
+      sid: userassignedmiforkvaccess.properties.principalId
       tenantId: subscription().tenantId
       azureADOnlyAuthentication: true
     }
@@ -885,6 +885,34 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
       {
         name: 'StorageAccountName'
         value: uistgacc.name
+      }
+    ]
+  }
+}
+
+var uamiPrincipalId = userassignedmiforkvaccess.id
+resource seedProductsDb 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  name: 'SeedProductsDb'
+  location: resourceLocation
+  kind: 'AzurePowerShell'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${uamiPrincipalId}': {}
+    }
+  }
+  properties: {
+    azPowerShellVersion: '9.7'
+    scriptContent: loadTextContent('./scripts/seed-products-db.ps1')
+    retentionInterval: 'PT4H'
+    environmentVariables: [
+      {
+        name: 'SQLServerFQN'
+        value: productsdbsrv.properties.fullyQualifiedDomainName
+      }
+      {
+        name: 'SQLDbName'
+        value: productsDbName
       }
     ]
   }
