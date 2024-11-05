@@ -181,7 +181,7 @@ jobs:
       - name: add application login
         uses: azure/sql-action@v2.3
         with:
-          connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=${{ env.PRODUCTS_DB_NAME }};Persist Security Info=False;Authentication=Active Directory Default;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
+          connection-string: 'Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=master;Persist Security Info=False;Authentication=Active Directory Default;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;'
           path: ./src/ContosoTraders.Api.Products/Migration/productsdbusers.sql
           skip-firewall-check: true
       # Seed the DBs and storage accounts
