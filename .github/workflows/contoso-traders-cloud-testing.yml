@@ -151,15 +151,15 @@ jobs:
       # You can modify the parameters to customize the deployment.
       # Note: The bicep template outputs are not shown in the logs. You can extract the outputs as shown here:
       # https://github.com/Azure/arm-deploy#another-example-on-how-to-use-this-action-to-get-the-output-of-arm-template
-      # - name: create resources
-      #   id: resourceDeployment
-      #   uses: Azure/arm-deploy@v1
-      #   with:
-      #     scope: resourcegroup
-      #     region: ${{ vars.DEPLOYMENTREGION }}
-      #     resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }}
-      #     template: ./iac/createResources.bicep
-      #     parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }}
+      - name: create resources
+        id: resourceDeployment
+        uses: Azure/arm-deploy@v1
+        with:
+          scope: resourcegroup
+          region: ${{ vars.DEPLOYMENTREGION }}
+          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }}
+          template: ./iac/createResources.bicep
+          parameters: ./iac/createResources.parameters.json suffix=${{ vars.SUFFIX }} sqlPassword=${{ secrets.SQLPASSWORD }} deployPrivateEndpoints=${{ vars.DEPLOYPRIVATEENDPOINTS }}
       # Add the logged-in service principal to the key vault access policy
       - name: add service principal to kv access policy
         uses: azure/CLI@v1
@@ -218,19 +218,19 @@ jobs:
         run: docker build src -f ./src/ContosoTraders.Api.Carts/Dockerfile -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:latest -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
       - name: docker push (to acr)
         run: docker push --all-tags ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}
-      # - name: deploy to aca
-      #   uses: azure/CLI@v1
-      #   with:
-      #     inlineScript: |
-      #       az config set extension.use_dynamic_install=yes_without_prompt
-      #       az containerapp update -n ${{ env.CARTS_ACA_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --image ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
-      # - name: deploy to aca (internal)
-      #   if: ${{ vars.DEPLOYPRIVATEENDPOINTS == 'true' }}
-      #   uses: azure/CLI@v1
-      #   with:
-      #     inlineScript: |
-      #       az config set extension.use_dynamic_install=yes_without_prompt
-      #       az containerapp update -n ${{ env.CARTS_INTERNAL_ACA_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --image ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
+      - name: deploy to aca
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+            az containerapp update -n ${{ env.CARTS_ACA_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --image ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
+      - name: deploy to aca (internal)
+        if: ${{ vars.DEPLOYPRIVATEENDPOINTS == 'true' }}
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+            az containerapp update -n ${{ env.CARTS_INTERNAL_ACA_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --image ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
       - name: get carts api endpoint
         uses: azure/CLI@v1
         id: get-cartsApiEndpoint
@@ -323,9 +323,13 @@ jobs:
           ${{ steps.install-helm.outputs.helm-path }} repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           ${{ steps.install-helm.outputs.helm-path }} repo update
           ${{ steps.install-helm.outputs.helm-path }} upgrade --install --wait --timeout=1h nginx-ingress ingress-nginx/ingress-nginx \
+            --version 4.7.1
+            --namespace ingress-basic
+            --create-namespace
             --set controller.replicaCount=1 \
             --set controller.nodeSelector."kubernetes\.io/os"=linux \
             --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
+            --set controller.service.annotations."service\.beta\.kubernetes\.io/os"=linux \
             --set controller.admissionWebhooks.patch.nodeSelector."kubernetes\.io/os"=linux \
             --set controller.service.externalTrafficPolicy=Local
       - name: set dns label on public ip
@@ -349,7 +353,10 @@ jobs:
       - name: install cert-manager
         run: |
           az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --name ${{ env.AKS_CLUSTER_NAME }}${{ vars.SUFFIX }}
-          kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
+          kubectl label namespace ingress-basic cert-manager.io/disable-validation=true
+          ${{ steps.install-helm.outputs.helm-path }} repo add jetstack https://charts.jetstack.io
+          ${{ steps.install-helm.outputs.helm-path }} repo update
+          ${{ steps.install-helm.outputs.helm-path }} install cert-manager jetstack/cert-manager  --namespace ingress-basic  --version=v1.8.0  --set installCRDs=true  --set nodeSelector."kubernetes\.io/os"=linux
       - name: sleep for 30 seconds
         run: sleep 30s
         shell: bash
