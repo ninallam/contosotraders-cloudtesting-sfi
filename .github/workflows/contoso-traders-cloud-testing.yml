@@ -356,7 +356,7 @@ jobs:
           kubectl label namespace ingress-basic cert-manager.io/disable-validation=true
           ${{ steps.install-helm.outputs.helm-path }} repo add jetstack https://charts.jetstack.io
           ${{ steps.install-helm.outputs.helm-path }} repo update
-          ${{ steps.install-helm.outputs.helm-path }} update --install cert-manager jetstack/cert-manager  --namespace ingress-basic  --version=v1.8.0  --set installCRDs=true  --set nodeSelector."kubernetes\.io/os"=linux
+          ${{ steps.install-helm.outputs.helm-path }} upgrade --install cert-manager jetstack/cert-manager  --namespace ingress-basic  --version=v1.8.0  --set installCRDs=true  --set nodeSelector."kubernetes\.io/os"=linux
       - name: sleep for 30 seconds
         run: sleep 30s
         shell: bash
